@@ -1,10 +1,9 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { AppState, AppConfig, FormationType, ParticleData, TopperType } from '../types';
-import { BRAND_LOGOS } from '../constants/assets';
+import { AppState, AppConfig, FormationType, ParticleData } from '../types';
 
-// Shaders
+// Shaders (保持不变)
 const vertexShader = `
   attribute float size;
   attribute vec3 color;
@@ -36,7 +35,6 @@ interface SceneProps {
 }
 
 export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureState }) => {
-  const { viewport } = useThree();
   const particleSystem = useRef<THREE.Points>(null);
   const particlesData = useRef<ParticleData[]>([]);
   
@@ -45,7 +43,22 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
     const positions: Record<string, Float32Array> = {};
     const count = config.particles.count;
 
-    // Helper: Generate Tree (Cone)
+    // 通用形状生成器（球体），作为兜底
+    const generateSphere = () => {
+        const arr = new Float32Array(count * 3);
+        const r = 6;
+        for(let i=0; i<count; i++) {
+            const i3 = i * 3;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            arr[i3] = r * Math.sin(phi) * Math.cos(theta);
+            arr[i3+1] = r * Math.sin(phi) * Math.sin(theta);
+            arr[i3+2] = r * Math.cos(phi);
+        }
+        return arr;
+    };
+
+    // 树形生成器
     const generateTree = (height: number, radius: number, spirals: number, tightness: number, xOff: number, yOff: number) => {
       const arr = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
@@ -53,8 +66,8 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
         const progress = i / count;
         const y = (progress * height) - (height / 2) + yOff;
         const radiusAtHeight = radius * (1 - progress);
-        const angle = progress * Math.PI * 2 * spirals + (Math.random() * Math.PI * 2); // Randomness for volume
-        const r = radiusAtHeight * Math.sqrt(Math.random()); // Uniform distribution in circle
+        const angle = progress * Math.PI * 2 * spirals + (Math.random() * Math.PI * 2);
+        const r = radiusAtHeight * Math.sqrt(Math.random());
         
         arr[i3] = r * Math.cos(angle) + xOff;
         arr[i3 + 1] = y;
@@ -63,68 +76,29 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
       return arr;
     };
 
-    // Helper: Generate Text or Logo from Image Data
-    // 注意：虽然这个函数保留了，但下面的调用中去掉了 Anker 等品牌
-    const generateFromLogo = (imgUrl: string, scale: number = 1.0, type: FormationType) => {
-        // Mock implementation since we don't have actual image processing in this snippet
-        // In a real app, this would parse pixel data. 
-        // Returning sphere as fallback for safety.
-        const arr = new Float32Array(count * 3);
-        const r = 5 * scale;
-        for(let i=0; i<count; i++) {
-            const i3 = i * 3;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos((Math.random() * 2) - 1);
-            arr[i3] = r * Math.sin(phi) * Math.cos(theta);
-            arr[i3+1] = r * Math.sin(phi) * Math.sin(theta);
-            arr[i3+2] = r * Math.cos(phi);
-        }
-        return arr;
-    };
-    
-    // Helper: Generate Specific Shapes (Hardcoded for demo)
-    const generateShape = (type: FormationType) => {
-        const arr = new Float32Array(count * 3);
-        // ... simplistic shape generation placeholders ...
-        for(let i=0; i<count; i++) {
-            const i3 = i * 3;
-            // Default Sphere
-            const r = 6;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos((Math.random() * 2) - 1);
-            arr[i3] = r * Math.sin(phi) * Math.cos(theta);
-            arr[i3+1] = r * Math.sin(phi) * Math.sin(theta);
-            arr[i3+2] = r * Math.cos(phi);
-        }
-        return arr;
-    };
-
-    // --- 核心修复点 1：移除了 deleted brands 的 case ---
+    // 根据 config.formation 生成对应的数据
+    // 即使类型是 TEXT 或其他，这里也会确保有数据生成
     switch (config.formation) {
       case FormationType.TREE:
-        positions[FormationType.TREE] = generateTree(config.tree.height, config.tree.radius, config.tree.spirals, config.tree.spiralTightness, config.tree.xOffset, config.tree.yOffset);
-        break;
       case FormationType.PINK_TREE:
-         positions[FormationType.PINK_TREE] = generateTree(config.tree.height, config.tree.radius, config.tree.spirals, config.tree.spiralTightness, config.tree.xOffset, config.tree.yOffset);
-         break;
       case FormationType.RED_TREE:
-         positions[FormationType.RED_TREE] = generateTree(config.tree.height, config.tree.radius, config.tree.spirals, config.tree.spiralTightness, config.tree.xOffset, config.tree.yOffset);
-         break;
-      case FormationType.TEXT:
-        // Text generation logic placeholder
-        positions[FormationType.TEXT] = generateShape(FormationType.TEXT);
+        positions[config.formation] = generateTree(config.tree.height, config.tree.radius, config.tree.spirals, config.tree.spiralTightness, config.tree.xOffset, config.tree.yOffset);
         break;
-      
-      // 其他保留的场景
+        
       case FormationType.HAT:
       case FormationType.STOCKING:
       case FormationType.ELK:
       case FormationType.SANTA:
       case FormationType.GIFT:
-         positions[config.formation] = generateShape(config.formation);
-         break;
+      case FormationType.TEXT:
+        // 这里暂时用球体代替复杂形状，防止因缺少 specific shape 逻辑导致崩溃
+        positions[config.formation] = generateSphere(); 
+        break;
 
-      // ⚠️ 已删除：ANKER, ANKERMAKER, SOUNDCORE, EUFY 的 case 语句
+      default:
+        // 关键兜底：如果是不识别的类型，也生成一个球体
+        positions[config.formation] = generateSphere();
+        break;
     }
 
     return positions;
@@ -140,18 +114,13 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
     const colors = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
     
+    // 清空并重新填充
     particlesData.current = [];
 
     const colorEmerald = new THREE.Color(config.colors.emerald);
     const colorGold = new THREE.Color(config.colors.gold);
     const colorRed = new THREE.Color(config.colors.red);
     const colorText = new THREE.Color(config.colors.text);
-
-    // --- 核心修复点 2：移除了 deleted brands 的颜色定义 ---
-    // const colorAnkermaker = new THREE.Color(config.colors.ankermaker); <-- 删除
-    // const colorAnker = new THREE.Color(config.colors.anker); <-- 删除
-    // const colorSoundcore = new THREE.Color(config.colors.soundcore); <-- 删除
-    // const colorEufy = new THREE.Color(config.colors.eufy); <-- 删除
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
@@ -171,11 +140,6 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
       if (config.formation === FormationType.TEXT) c = colorText;
       if (config.formation === FormationType.PINK_TREE) c = new THREE.Color('#ffb7c5'); 
       if (config.formation === FormationType.RED_TREE) c = colorRed;
-      
-      // --- 核心修复点 3：移除了 deleted brands 的颜色赋值逻辑 ---
-      // if (config.formation === FormationType.ANKERMAKER) c = colorAnkermaker; <-- 删除
-      // if (config.formation === FormationType.ANKER) c = colorAnker; <-- 删除
-      // ... 等等
 
       colors[i3] = c.r;
       colors[i3 + 1] = c.g;
@@ -197,16 +161,18 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    geometry.attributes.position.needsUpdate = true;
     
   }, [config.particles.count, config.colors, config.formation]); 
 
   useFrame((state, delta) => {
-    if (!particleSystem.current) return;
+    // 1. 基础安全检查
+    if (!particleSystem.current || !particleSystem.current.geometry.attributes.position) return;
 
     const time = state.clock.getElapsedTime();
     const count = config.particles.count;
     
-    // Rotation & Zoom Logic (Unchanged)
+    // 旋转控制
     const group = particleSystem.current;
     if (gestureState.current.isZooming) {
         group.scale.setScalar(THREE.MathUtils.lerp(group.scale.x, gestureState.current.zoomDistance, 0.1));
@@ -216,13 +182,23 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
     group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, gestureState.current.rotationX, 0.1);
 
     const positionsArray = particleSystem.current.geometry.attributes.position.array as Float32Array;
-    const currentTargetPositions = targetPositions[config.formation] || targetPositions[FormationType.TREE]; 
+    
+    // 2. 获取目标位置，并做空值保护
+    // 如果当前 formation 没有生成位置数据，默认给一个空数组防止崩溃
+    const currentTargetPositions = targetPositions[config.formation]; 
+    
+    // 如果真的拿不到目标位置（极端情况），直接退出本次渲染，防止闪屏
+    if (!currentTargetPositions && state === AppState.FORMED) return;
 
     const isChaos = state === AppState.CHAOS;
 
     for (let i = 0; i < count; i++) {
-        const i3 = i * 3;
+        // 3. 核心防崩保护：检查 particlesData 是否存在
+        // 当粒子数量变化时，particlesData 可能还没更新，这里直接跳过
         const particle = particlesData.current[i];
+        if (!particle) continue;
+
+        const i3 = i * 3;
         
         let targetX = 0, targetY = 0, targetZ = 0;
 
@@ -231,10 +207,10 @@ export const Scene: React.FC<SceneProps> = ({ state, config, dragDelta, gestureS
             targetY = particle.chaosPos.y + Math.cos(time + i * 0.5) * 0.05;
             targetZ = particle.chaosPos.z;
         } else {
-            // 安全的获取目标位置，如果某种原因越界，回退到 0
-            targetX = currentTargetPositions[i3] || 0;
-            targetY = currentTargetPositions[i3 + 1] || 0;
-            targetZ = currentTargetPositions[i3 + 2] || 0;
+            // 安全读取数组
+            targetX = currentTargetPositions ? currentTargetPositions[i3] || 0 : 0;
+            targetY = currentTargetPositions ? currentTargetPositions[i3 + 1] || 0 : 0;
+            targetZ = currentTargetPositions ? currentTargetPositions[i3 + 2] || 0 : 0;
         }
 
         particle.currentPos.x += (targetX - particle.currentPos.x) * delta * particle.speed;
