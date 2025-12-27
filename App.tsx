@@ -9,6 +9,7 @@ import * as THREE from 'three';
 
 const BASE_PARTICLE_COUNT = 70000;
 
+// 1. 已删除所有品牌相关的 Scale
 const DEFAULT_SCALES: Record<FormationType, number> = {
   [FormationType.TREE]: 1.0,
   [FormationType.PINK_TREE]: 1.0,
@@ -18,13 +19,10 @@ const DEFAULT_SCALES: Record<FormationType, number> = {
   [FormationType.TEXT]: 0.9,
   [FormationType.ELK]: 1.65,
   [FormationType.SANTA]: 1.0,
-  // [FormationType.ANKERMAKER]: 0.9, <-- 已删除
-  // [FormationType.ANKER]: 1.15,     <-- 已删除
-  // [FormationType.SOUNDCORE]: 1.55, <-- 已删除
-  // [FormationType.EUFY]: 0.9,       <-- 已删除
   [FormationType.GIFT]: 1.65,
 };
 
+// 2. 已删除所有品牌相关的 Exposure
 const DEFAULT_EXPOSURES: Record<FormationType, number> = {
   [FormationType.TREE]: 1.0,
   [FormationType.PINK_TREE]: 1.0,
@@ -34,10 +32,6 @@ const DEFAULT_EXPOSURES: Record<FormationType, number> = {
   [FormationType.TEXT]: 1.0,
   [FormationType.ELK]: 1.0,
   [FormationType.SANTA]: 1.0,
-  // [FormationType.ANKERMAKER]: 1.0, <-- 已删除
-  // [FormationType.ANKER]: 1.0,     <-- 已删除
-  // [FormationType.SOUNDCORE]: 1.0, <-- 已删除
-  // [FormationType.EUFY]: 1.0,      <-- 已删除
   [FormationType.GIFT]: 1.0,
 };
 
@@ -97,10 +91,7 @@ const DEFAULT_CONFIG: AppConfig = {
     gold: '#fbe774', 
     red: '#e51010',
     text: '#eed858',
-    // ankermaker: '#00c6ff', <-- 已删除
-    // anker: '#00c6ff',      <-- 已删除
-    // soundcore: '#12a7d9',  <-- 已删除
-    // eufy: '#17a6ee',       <-- 已删除
+    // 3. 已删除品牌颜色定义 (anker, soundcore, eufy...)
   },
   cycle: {
     formedDuration: 5.0, 
@@ -116,11 +107,11 @@ const DEFAULT_CONFIG: AppConfig = {
   exposure: 1.0, 
   formationScales: { ...DEFAULT_SCALES },
   formationExposures: { ...DEFAULT_EXPOSURES },
-  customLogos: {
-     // 已清空 Brand 相关的 Logo 映射
-  }, 
+  // 4. 清空了 customLogos，因为已不需要 Logo 映射
+  customLogos: {}, 
 };
 
+// 5. 已从播放列表中移除所有品牌场景
 const ORDERED_FORMATIONS = [
   FormationType.TREE,
   FormationType.GIFT,
@@ -130,11 +121,7 @@ const ORDERED_FORMATIONS = [
   FormationType.SANTA,
   FormationType.RED_TREE,
   FormationType.PINK_TREE,
-  // FormationType.ANKERMAKER, <-- 已删除
   FormationType.TEXT,
-  // FormationType.ANKER,      <-- 已删除
-  // FormationType.SOUNDCORE,  <-- 已删除
-  // FormationType.EUFY,       <-- 已删除
 ];
 
 const App: React.FC = () => {
