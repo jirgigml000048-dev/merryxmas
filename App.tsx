@@ -18,10 +18,10 @@ const DEFAULT_SCALES: Record<FormationType, number> = {
   [FormationType.TEXT]: 0.9,
   [FormationType.ELK]: 1.65,
   [FormationType.SANTA]: 1.0,
-  [FormationType.ANKERMAKER]: 0.9,
-  [FormationType.ANKER]: 1.15,
-  [FormationType.SOUNDCORE]: 1.55,
-  [FormationType.EUFY]: 0.9,
+  // [FormationType.ANKERMAKER]: 0.9, <-- 已删除
+  // [FormationType.ANKER]: 1.15,     <-- 已删除
+  // [FormationType.SOUNDCORE]: 1.55, <-- 已删除
+  // [FormationType.EUFY]: 0.9,       <-- 已删除
   [FormationType.GIFT]: 1.65,
 };
 
@@ -34,10 +34,10 @@ const DEFAULT_EXPOSURES: Record<FormationType, number> = {
   [FormationType.TEXT]: 1.0,
   [FormationType.ELK]: 1.0,
   [FormationType.SANTA]: 1.0,
-  [FormationType.ANKERMAKER]: 1.0,
-  [FormationType.ANKER]: 1.0,
-  [FormationType.SOUNDCORE]: 1.0,
-  [FormationType.EUFY]: 1.0,
+  // [FormationType.ANKERMAKER]: 1.0, <-- 已删除
+  // [FormationType.ANKER]: 1.0,     <-- 已删除
+  // [FormationType.SOUNDCORE]: 1.0, <-- 已删除
+  // [FormationType.EUFY]: 1.0,      <-- 已删除
   [FormationType.GIFT]: 1.0,
 };
 
@@ -97,10 +97,10 @@ const DEFAULT_CONFIG: AppConfig = {
     gold: '#fbe774', 
     red: '#e51010',
     text: '#eed858',
-    ankermaker: '#00c6ff', 
-    anker: '#00c6ff',
-    soundcore: '#12a7d9',
-    eufy: '#17a6ee',
+    // ankermaker: '#00c6ff', <-- 已删除
+    // anker: '#00c6ff',      <-- 已删除
+    // soundcore: '#12a7d9',  <-- 已删除
+    // eufy: '#17a6ee',       <-- 已删除
   },
   cycle: {
     formedDuration: 5.0, 
@@ -116,11 +116,8 @@ const DEFAULT_CONFIG: AppConfig = {
   exposure: 1.0, 
   formationScales: { ...DEFAULT_SCALES },
   formationExposures: { ...DEFAULT_EXPOSURES },
-  // 确保访问 BRAND_LOGOS 属性时的鲁棒性
   customLogos: {
-    [FormationType.ANKER]: (BRAND_LOGOS as any)?.ANKER || '',
-    [FormationType.SOUNDCORE]: (BRAND_LOGOS as any)?.SOUNDCORE || '',
-    [FormationType.EUFY]: (BRAND_LOGOS as any)?.EUFY || ''
+     // 已清空 Brand 相关的 Logo 映射
   }, 
 };
 
@@ -133,11 +130,11 @@ const ORDERED_FORMATIONS = [
   FormationType.SANTA,
   FormationType.RED_TREE,
   FormationType.PINK_TREE,
-  FormationType.ANKERMAKER, 
+  // FormationType.ANKERMAKER, <-- 已删除
   FormationType.TEXT,
-  FormationType.ANKER,
-  FormationType.SOUNDCORE,
-  FormationType.EUFY,
+  // FormationType.ANKER,      <-- 已删除
+  // FormationType.SOUNDCORE,  <-- 已删除
+  // FormationType.EUFY,       <-- 已删除
 ];
 
 const App: React.FC = () => {
@@ -184,7 +181,7 @@ const App: React.FC = () => {
     dragDelta.current.x = deltaX * 0.02;
     dragDelta.current.y = -deltaY * 0.02;
   };
-  
+   
   const onWindowPointerUp = () => {
     if (dragInfo.current.active) {
       dragInfo.current.active = false;
