@@ -1,4 +1,3 @@
-
 import * as THREE from 'three';
 import React from 'react';
 import { ThreeElements } from '@react-three/fiber';
@@ -32,11 +31,8 @@ export enum FormationType {
   TEXT = 'TEXT',
   ELK = 'ELK',
   SANTA = 'SANTA',
-  ANKERMAKER = 'ANKERMAKER',
-  ANKER = 'ANKER',
-  SOUNDCORE = 'SOUNDCORE',
-  EUFY = 'EUFY',
   GIFT = 'GIFT',
+  // 已删除: ANKERMAKER, ANKER, SOUNDCORE, EUFY
 }
 
 export type OrnamentType = 'heavy' | 'medium' | 'light';
@@ -103,10 +99,7 @@ export interface ColorConfig {
   gold: string;
   red: string;
   text: string;
-  ankermaker: string;
-  anker: string;
-  soundcore: string;
-  eufy: string;
+  // 已删除: ankermaker, anker, soundcore, eufy
 }
 
 export interface CycleConfig {
